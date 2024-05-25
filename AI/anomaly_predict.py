@@ -12,22 +12,20 @@ from tensorflow.keras.callbacks import EarlyStopping
 import tensorflow as tf
 from joblib import load
 
+def get_data(WR, tg, apdex):
+    df1 = pd.DataFrame(WR['data'], columns=['point', 'WR'])
+    df2 = pd.DataFrame(tg['data'], columns=['point', 'tg'])
+    df3 = pd.DataFrame(apdex['data'], columns=['point', 'apdex'])
 
-
-def get_data(start, end):
-
-    DATA = pd.read_csv('data_main.csv')
-    DATA['point'] = pd.to_datetime(DATA['point'])
-    DATA.set_index('point', inplace = True)
-
-    DATA['erore'] = DATA['erore'].fillna(0)
-    DATA.drop('erore', inplace=True, axis=1)
-    return DATA.copy().loc[start:end]
+    result = pd.merge(pd.merge(df1, df2, on='point', how='outer'), df3, on='point', how='outer')
+    result['point'] = pd.to_datetime(result['point'])
+    result.set_index('point', inplace=True)
+    return result
 
 def load_model():
 
-    model = tf.keras.models.load_model('resources/auto_model.keras')
-    STscaler = load('resources/scaler.joblib')
+    model = tf.keras.models.load_model('auto_model.keras')
+    STscaler = load('scaler.joblib')
     return model, STscaler
 
 def feature_Engineering(data):
@@ -39,9 +37,9 @@ def feature_Engineering(data):
 
     return data
 
-def anomaly(data, model, SC):
+def anomaly(data, model, SC, limit):
 
-    limit = 4.717213602576221
+    limit = limit
     data_sc = SC.transform(data)
 
     data_delta = data_sc - model.predict(data_sc)
@@ -57,11 +55,12 @@ def anomaly(data, model, SC):
     json_result = data_is_anomaly.to_json(orient='records')
     return json_result
 
-def anomaly_pipeline(start, end, limit=4.717213602576221):
-    data = get_data(start, end)
+def anomaly_pipeline(WR, tg ,aprdex, limit=4.717213602576221):
+    data = get_data(WR, tg, aprdex)
     model, scaler = load_model()
     data = feature_Engineering(data)
-    json_result = anomaly(data, model, scaler)
+    json_result = anomaly(data, model, scaler, limit)
     return json_result
+
 
 
