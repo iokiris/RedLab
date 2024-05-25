@@ -32,7 +32,38 @@ services:
         limits:
           cpus: '1.0'
           memory: 1024M
-    restart: on-failure:5
+    restart: always
+  # pgdb:
+  #   image: postgres:latest
+  #   restart: always
+  #   volumes:
+  #     - db_data:/var/lib/postgresql/data
+  #   environment:
+  #     - POSTGRES_DB=${POSTGRES_DB}
+  #     - POSTGRES_USER=${POSTGRES_USER}
+  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+  #   ports:
+  #     - '5433:5432'
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '1.0'
+    #       memory: 1024M
+  clickhouse:
+    image: yandex/clickhouse-server
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    ports:
+      - '8123:8123'
+      - '9000:9000'
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2048M
+    restart: always
 
 volumes:
   rb_front_node_modules:
+  db_data:
+  clickhouse_data:

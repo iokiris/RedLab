@@ -1,29 +1,14 @@
-import './App.css';
+import React from 'react';
+import ChartComponent from './components/ChartComponent';
+import ChartPage from './components/ChartPage';
 
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+const App = () => {
 
-function App() {
-  const [currentTime, setCurrentTime] = useState('');
-
-  useEffect(() => {
-    axios.get('/api/ping/')
-      .then(response => {
-        setCurrentTime(response.data.timestamp);
-      })
-      .catch(error => {
-        console.error('error: ', error);
-      });
-  }, []);
-
-  return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Current Time</h1>
-        <p>{currentTime ? `Server time: ${currentTime}` : 'Loading...'}</p>
-      </header>
-    </div>
-  );
-}
+    return (
+        <div>
+            <ChartPage />
+        </div>
+    );
+};
 
 export default App;

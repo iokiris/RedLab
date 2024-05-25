@@ -1,5 +1,9 @@
 from django.urls import path
-from .views import ping
+from . import views
 urlpatterns = [
-    path('ping/', ping, name="ping")
+    path('web-response-time/', views.web_response_time, name='web_response_time'),
+    path('throughput/', views.throughput, name='throughput'),
+    path('apdex/', views.apdex, name='apdex'),
+    path('error-rate/', views.error_rate, name='error_rate'),
+    path('time-sector/', views.time_sector, name='time_sector'),
 ]
