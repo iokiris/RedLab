@@ -171,14 +171,9 @@ def enchanced_fwda(request):
     start_time = request.GET.get('start_time')
     end_time = request.GET.get('end_time')
     cache_key = f"enchanced_fwda_{start_time}_{end_time}"
-    data = cache.get('asdkpoas')
+    data = cache.get(cache_key)
     if not data:
-        # start_t = time.time()
-        # wrq = queries.enchanced_wr(start_time, end_time)
-        # thq = queries.enchanced_thq(start_time, end_time)
-        # apdex = queries.enchanced_apdex(start_time, end_time)
-        # output, count = anomaly_pipeline(wrq, thq, apdex)
-        # cache.set(cache_key, data, timeout=60)
+        cache.set(cache_key, data, timeout=60)
         req = queries.enchanced_all(start_time, end_time)
         anomalies = anomaly_pipeline(req)
         for i in range(len(req)):
