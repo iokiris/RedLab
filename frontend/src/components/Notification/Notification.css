@@ -1,0 +1,17 @@
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 0 8px 1px black;
+    background-color: white;
+  
+  }
+  
+  .notification-message {
+    font-size: 16px;
+  }

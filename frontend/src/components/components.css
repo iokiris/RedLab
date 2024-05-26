@@ -1,0 +1,69 @@
+.chart-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
+
+.chart-item {
+    flex: 0 0 45%;
+    margin: 10px;
+}
+
+
+.container {
+    width: 90%;
+    margin: 0 auto;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.cp-time-label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+
+.cp-form-group {
+    display: inline-block;
+    margin-left: 25px;
+}
+
+.custom-toast {
+    display: flex;
+    align-items: center;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: white;
+    border: 1px solid #ccc;
+}
+
+.toast-icon {
+    margin-right: 10px;
+    fill: #ffa500; /* Цвет иконки (оранжевый) */
+}
+
+.custom-toast-container {
+    width: fit-content;
+    padding: 0;
+    background: none;
+    box-shadow: none;
+}
+
+@media screen {
+    
+}
+

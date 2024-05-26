@@ -1,7 +1,41 @@
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+=======
+# Created by https://www.gitignore.io
+
+/.venv
+
+### OSX ###
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Icon must end with two \r
+Icon
+
+
+# Thumbnails
+._*
+
+# Files that might appear on external disk
+.Spotlight-V100
+.Trashes
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+
+### Python ###
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
 
 # C extensions
 *.so
@@ -15,6 +49,7 @@ dist/
 downloads/
 eggs/
 .eggs/
+=======
 lib/
 lib64/
 parts/
@@ -29,6 +64,14 @@ share/python-wheels/
 MANIFEST
 
 # PyInstaller
+=======
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
 
@@ -50,6 +93,11 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+=======
+.coverage
+.cache
+nosetests.xml
+coverage.xml
 
 # Translations
 *.mo
@@ -69,6 +117,7 @@ instance/
 # Scrapy stuff:
 .scrapy
 
+=======
 # Sphinx documentation
 docs/_build/
 
@@ -136,3 +185,14 @@ yarn.lock
 .idea
 .vscode/
 ngrok.yml
+=======
+
+### Django ###
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+
+.env
+db.sqlite3
