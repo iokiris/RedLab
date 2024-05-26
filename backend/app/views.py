@@ -1,4 +1,7 @@
 import time
+from app import queries
+from AI.anomaly_predict import anomaly_pipeline
+
 from django.http import JsonResponse
 from django.core.cache import cache
 from .clickhouse_service import execute_query
@@ -18,25 +21,10 @@ def web_response_time(request):
 
     cache_key = f"web_response_time_{start_time}_{end_time}"
     data = cache.get(cache_key)
-
+ 
     if not data:
-        time_condition = build_time_condition(start_time, end_time)
-        query = f"""
-        SELECT
-            point as time,
-            sumOrNull(total_call_time) / sumOrNull(call_count) as response_time
-        FROM metrics_table
-        WHERE
-            language = 'java'
-            AND app_name = '[GMonit] Collector'
-            AND scope = ''
-            AND name = 'HttpDispatcher'
-            {time_condition}
-        GROUP BY time
-        ORDER BY time
-        """
-        data = execute_query(query)
-        cache.set(cache_key, data, timeout=3600)  # Кэшируем на 1 час
+        data = queries.wb_query(start_time, end_time)
+        cache.set(cache_key, data, timeout=180)  # Кэшируем на 3 минуты
 
     return JsonResponse({'data': data})
 
@@ -48,24 +36,8 @@ def throughput(request):
     data = cache.get(cache_key)
 
     if not data:
-        time_condition = build_time_condition(start_time, end_time)
-        query = f"""
-        SELECT
-            point as time,
-            sumOrNull(call_count) as throughput
-        FROM metrics_table
-        WHERE
-            language = 'java'
-            AND app_name = '[GMonit] Collector'
-            AND scope = ''
-            AND name = 'HttpDispatcher'
-            {time_condition}
-        GROUP BY time
-        ORDER BY time
-        """
-        data = execute_query(query)
-        cache.set(cache_key, data, timeout=3600)  # Кэшируем на 1 час
-
+        data = queries.th_query(start_time, end_time)
+        cache.set(cache_key, data, timeout=180) 
     return JsonResponse({'data': data})
 
 def apdex(request):
@@ -76,27 +48,8 @@ def apdex(request):
     data = cache.get(cache_key)
 
     if not data:
-        time_condition = build_time_condition(start_time, end_time)
-        query = f"""
-        WITH
-            sumOrNull(call_count) as s,
-            sumOrNull(total_call_time) as t,
-            sumOrNull(total_exclusive_time) as f
-        SELECT
-            point as time,
-            (s + t/2) / (s + t + f) as apdex
-        FROM metrics_table
-        WHERE
-            language = 'java'
-            AND app_name = '[GMonit] Collector'
-            AND scope = ''
-            AND name = 'Apdex'
-            {time_condition}
-        GROUP BY time
-        ORDER BY time
-        """
-        data = execute_query(query)
-        cache.set(cache_key, data, timeout=3600)  # Кэшируем на 1 час
+        data = queries.apdex_query(start_time, end_time)
+        cache.set(cache_key, data, timeout=180)  
 
     return JsonResponse({'data': data})
 
@@ -104,47 +57,136 @@ def error_rate(request):
     start_time = request.GET.get('start_time')
     end_time = request.GET.get('end_time')
 
-    cache_key = f"error_rate_{start_time}_{end_time}"
+    cache_key = f"anomaly_predict{start_time}_{end_time}"
     data = cache.get(cache_key)
 
     if not data:
-        time_condition = build_time_condition(start_time, end_time)
-        query = f"""
-        SELECT
-            point as time,
-            sumOrNullIf(call_count, name='Errors/allWeb') / sumOrNullIf(call_count, name='HttpDispatcher') as error_rate
-        FROM metrics_table
-        WHERE
-            language = 'java'
-            AND app_name = '[GMonit] Collector'
-            AND scope = ''
-            AND name IN ('HttpDispatcher', 'Errors/allWeb')
-            {time_condition}
-        GROUP BY time
-        ORDER BY time
-        """
-        data = execute_query(query)
-        cache.set(cache_key, data, timeout=3600)  # Кэшируем на 1 час
+        data = queries.er
+        cache.set(cache_key, data, timeout=3600)
 
     return JsonResponse({'data': data})
 
 def time_sector(request):
-    query = """
-        SELECT
-            toStartOfDay(min(point)) as min_time,
-            toStartOfDay(max(point)) as max_time
-        FROM
-            metrics_table
-        WHERE
-            language = 'java'
-            AND app_name = '[GMonit] Collector'
-            AND scope = ''
-    """
-    try:
-        data = execute_query(query)
-        min_time = data[0][0]
-        max_time = data[0][1]
-        return JsonResponse({'min_time': min_time, 'max_time': max_time})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-    
+    cache_key = "time_sector"
+    data = cache.get(cache_key)
+
+    if not data:
+        try:
+            data = queries.time_selector()
+            min_time = data[0][0]
+            max_time = data[0][1]
+            data = {'min_time': min_time, 'max_time': max_time}
+            cache.set(cache_key, data, timeout=3600)  # Кэшируем на час
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse(data)
+
+def anomaly_stats(request):
+    start_time = request.GET.get('start_time')
+    end_time = request.GET.get('end_time')
+    cache_key = f"anomalys_{start_time}_{end_time}"
+    data = cache.get(cache_key)
+    if not data:
+        data = anomaly_pipeline()
+    return JsonResponse({'data': data})
+
+
+# увесистый запрос
+
+def get_all_metrics(request):
+    start_time = request.GET.get('start_time')
+    end_time = request.GET.get('end_time')
+    cache_key = f"allmetrics_{start_time}_{end_time}"
+    data = cache.get(cache_key)
+    if not data:
+        data = queries.all_metrics_query(start_time, end_time)
+        cache.set(cache_key, data, timeout=60)
+    return JsonResponse({'data': data})
+
+
+# увесистый запрос
+def full_data_with_anomalys(request):
+    start_time = request.GET.get('start_time')
+    end_time = request.GET.get('end_time')
+    cache_key = f"fdwa_{start_time}_{end_time}"
+    data = cache.get(cache_key)
+    if not data:
+        wbq = queries.wb_query(start_time, end_time)
+        thq = queries.th_query(start_time, end_time)
+        apd = queries.apdex_query(start_time, end_time)
+        anomalys = anomaly_pipeline(wbq, thq, apd)
+        return JsonResponse({'data': anomalys})
+
+def enchanced_wr(request):
+    start_time = request.GET.get('start_time')
+    end_time = request.GET.get('end_time')
+    cache_key = f"enchanced_wr_{start_time}_{end_time}"
+    data = cache.get(cache_key)
+    if not data:
+        data = queries.enchanced_wr(start_time, end_time)
+        cache.set(cache_key, data, timeout=60)
+    return JsonResponse({'data': data})
+
+def enchanced_thq(request):
+    start_time = request.GET.get('start_time')
+    end_time = request.GET.get('end_time')
+    cache_key = f"enchanced_thq_{start_time}_{end_time}"
+    data = cache.get(cache_key)
+    if not data:
+        data = queries.enchanced_thq(start_time, end_time)
+        cache.set(cache_key, data, timeout=60)
+    return JsonResponse({'data': data})
+
+def enchanced_apdex(request):
+    start_time = request.GET.get('start_time')
+    end_time = request.GET.get('end_time')
+    cache_key = f"enchanced_apdex_{start_time}_{end_time}"
+    data = cache.get(cache_key)
+    if not data:
+        data = queries.enchanced_apdex(start_time, end_time)
+        cache.set(cache_key, data, timeout=60)
+    return JsonResponse({'data': data})
+
+
+
+def enchanced_all(request):
+    start_time = request.GET.get('start_time')
+    end_time = request.GET.get('end_time')
+    cache_key = f"enchanced_all_{start_time}_{end_time}"
+    data = cache.get(cache_key)
+    if not data:
+        data = queries.enchanced_all(start_time, end_time)
+        cache.set(cache_key, data, timeout=60)
+    return JsonResponse({'data': data})
+
+
+def combine_data_with_anomalies(req, anomalies):
+    combined_data = []
+    for i in range(len(req)):
+        combined_data.append(req[i] + [anomalies[1][i]])
+    return combined_data
+
+def enchanced_fwda(request):
+    start_time = request.GET.get('start_time')
+    end_time = request.GET.get('end_time')
+    cache_key = f"enchanced_fwda_{start_time}_{end_time}"
+    data = cache.get('asdkpoas')
+    if not data:
+        # start_t = time.time()
+        # wrq = queries.enchanced_wr(start_time, end_time)
+        # thq = queries.enchanced_thq(start_time, end_time)
+        # apdex = queries.enchanced_apdex(start_time, end_time)
+        # output, count = anomaly_pipeline(wrq, thq, apdex)
+        # cache.set(cache_key, data, timeout=60)
+        req = queries.enchanced_all(start_time, end_time)
+        anomalies = anomaly_pipeline(req)
+        for i in range(len(req)):
+            req[i] = [req[i][0], req[i][1], req[i][2], req[i][3], anomalies[i][1], anomalies[i][0]]
+
+        data = {
+            'data': req,
+        }
+        cache.set(cache_key, data, timeout=1800)
+
+    return JsonResponse(data)

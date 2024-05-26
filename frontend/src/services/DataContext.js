@@ -8,25 +8,15 @@ export const useData = () => {
 };
 
 const DataProvider = ({ children }) => {
-  const [webResponseTime, setWebResponseTime] = useState([]);
-  const [throughput, setThroughput] = useState([]);
-  const [apdex, setApdex] = useState([]);
-  const [errorRate, setErrorRate] = useState([]);
+  const [data, setData] = useState([]);
+  const [anomCount, setAnomCount] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response1 = await axios.get(`/api/web-response-time`);
-        setWebResponseTime(response1.data.data);
-
-        const response2 = await axios.get(`/api/throughput`);
-        setThroughput(response2.data.data);
-
-        const response3 = await axios.get(`/api/apdex`);
-        setApdex(response3.data.data);
-
-        const response4 = await axios.get(`/api/error-rate`);
-        setErrorRate(response4.data.data);
+        const response = await axios.get('/api/enchanced_fwda');
+        setData(response.data.data);
+        setAnomCount(response.data.count);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -34,8 +24,9 @@ const DataProvider = ({ children }) => {
 
     fetchData();
   }, []);
+
   return (
-    <DataContext.Provider value={{ webResponseTime, throughput, apdex, errorRate }}>
+    <DataContext.Provider value={{ data, anomCount }}>
       {children}
     </DataContext.Provider>
   );

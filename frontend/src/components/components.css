@@ -9,19 +9,14 @@
     margin: 10px;
 }
 
-/* components.css */
 
-/* Общие стили для контейнера */
 .container {
     width: 90%;
     margin: 0 auto;
     padding: 20px;
-    background-color: #f9f9f9;
     border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-/* Стили для формы */
 .form-group {
     margin-bottom: 20px;
 }
@@ -46,3 +41,29 @@
     display: inline-block;
     margin-left: 25px;
 }
+
+.custom-toast {
+    display: flex;
+    align-items: center;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: white;
+    border: 1px solid #ccc;
+}
+
+.toast-icon {
+    margin-right: 10px;
+    fill: #ffa500; /* Цвет иконки (оранжевый) */
+}
+
+.custom-toast-container {
+    width: fit-content;
+    padding: 0;
+    background: none;
+    box-shadow: none;
+}
+
+@media screen {
+    
+}
+

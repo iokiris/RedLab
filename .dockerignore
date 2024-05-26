@@ -3,3 +3,4 @@
 .dockerignore
 .vscode
 __pycache__
+venv
